@@ -2,12 +2,16 @@ package com.upday.service
 
 import com.upday.entity.Article
 import com.upday.repository.ArticleRepository
+import com.upday.repository.AuthorRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
 @Service
-class ArticleService(@Autowired private val articleRepository: ArticleRepository) {
+class ArticleService(
+    @Autowired private val articleRepository: ArticleRepository,
+    @Autowired private val authorRepository: AuthorRepository
+) {
 
     fun createArticle(article: Article): Article {
         return articleRepository.save(article)

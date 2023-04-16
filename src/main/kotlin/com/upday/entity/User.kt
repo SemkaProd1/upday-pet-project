@@ -1,12 +1,12 @@
 package com.upday.entity
 
 import io.swagger.v3.oas.annotations.media.Schema
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
+import jakarta.persistence.*
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.userdetails.UserDetails
 
 @Entity
+@Table(name = "users")
 data class User(
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -14,11 +14,18 @@ data class User(
     val id: Long = 0,
 
     @Schema(description = "User name", example = "John Doe")
-    val name: String = "",
+    val username: String = "",
 
-    @Schema(description = "User email", example = "john.doe@example.com")
-    val email: String = ""
+    @Schema(description = "encrypted password", example = "Fl4v#5l")
+    var password: String = "",
+
+    @Schema(description = "User Role", example = "Admin")
+    val role: Role = Role.User
 ) {
     // Default constructor required by JPA
-    constructor() : this(0, "", "")
+    constructor() : this(0, "", "", Role.User)
+
+    enum class Role {
+        SuperAdmin, Admin, User
+    }
 }

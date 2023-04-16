@@ -1,0 +1,13 @@
+1) from superAdmin create 2 users with USER role
+2) try to login with non exist user
+3) promote 1 user to Admin
+4) try to create article from User role (but only admins can create)
+Steps 5-7 should be done by user with "Admin" role.
+5) Create 3 different articles
+6) show 1 of them
+7) update one article
+Steps 8-10 should be done by user with "User" role.
+8) list all articles for a given author
+9) list all articles for a given period
+10) find all articles for a specific keyword
+11) delete all articles by user with "Admin" role.

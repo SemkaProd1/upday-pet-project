@@ -7,19 +7,24 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
 
 @RestController
 @RequestMapping("/articles")
 class ArticleController(private val articleService: ArticleService) {
+    private val logger: Logger = LoggerFactory.getLogger(ArticleController::class.java)
 
     @Operation(summary = "Create an article")
     @ApiResponse(responseCode = "201", description = "Article created successfully")
     @PostMapping
+    @PreAuthorize("hasRole('Admin') or hasRole('SuperAdmin')")
     fun createArticle(@RequestBody article: Article): ResponseEntity<Article> {
         val createdArticle = articleService.createArticle(article)
         return ResponseEntity(createdArticle, HttpStatus.CREATED)
@@ -34,6 +39,7 @@ class ArticleController(private val articleService: ArticleService) {
         ]
     )
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('Admin') or hasRole('SuperAdmin')")
     fun updateArticle(
         @Parameter(
             description = "ID of the article to update",
@@ -43,8 +49,15 @@ class ArticleController(private val articleService: ArticleService) {
         @PathVariable id: Long,
         @RequestBody article: Article
     ): ResponseEntity<Article> {
+        logger.info("Updating article with ID $id")
         val updatedArticle = articleService.updateArticle(id, article)
-        return ResponseEntity(updatedArticle, HttpStatus.OK)
+        return if (updatedArticle != null) {
+            logger.info("Updated article with ID $id")
+            ResponseEntity(updatedArticle, HttpStatus.OK)
+        } else {
+            logger.warn("Article with ID $id not found")
+            ResponseEntity(HttpStatus.NOT_FOUND)
+        }
     }
 
     @Operation(summary = "Delete an article")
@@ -56,6 +69,7 @@ class ArticleController(private val articleService: ArticleService) {
         ]
     )
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('Admin') or hasRole('SuperAdmin')")
     fun deleteArticle(
         @Parameter(
             description = "ID of the article to delete",
@@ -64,8 +78,13 @@ class ArticleController(private val articleService: ArticleService) {
         )
         @PathVariable id: Long
     ): ResponseEntity<Void> {
-        articleService.deleteArticle(id)
-        return ResponseEntity(HttpStatus.NO_CONTENT)
+        return try {
+            articleService.deleteArticle(id)
+            ResponseEntity(HttpStatus.NO_CONTENT)
+        } catch (e: Exception) {
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(null)
+        }
     }
 
     @Operation(summary = "Get an article by ID")
@@ -77,19 +96,25 @@ class ArticleController(private val articleService: ArticleService) {
         ]
     )
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('Admin') or hasRole('SuperAdmin')")
     fun getArticleById(
         @Parameter(
             description = "ID of the article to get",
             required = true,
             schema = Schema(type = "integer", format = "int64")
         )
-        @PathVariable id: Long
+        @PathVariable id: Long,
     ): ResponseEntity<Article> {
-        val article = articleService.getArticleById(id)
-        return if (article != null) {
-            ResponseEntity(article, HttpStatus.OK)
-        } else {
-            ResponseEntity(HttpStatus.NOT_FOUND)
+        return try {
+            val article = articleService.getArticleById(id)
+            if (article != null) {
+                ResponseEntity(article, HttpStatus.OK)
+            } else {
+                ResponseEntity(HttpStatus.NOT_FOUND)
+            }
+        } catch (e: Exception) {
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(null)
         }
     }
 
@@ -116,44 +141,66 @@ class ArticleController(private val articleService: ArticleService) {
         )
         @RequestParam("toDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) toDate: LocalDate
     ): ResponseEntity<List<Article>> {
-        val articles = articleService.getArticlesByPeriod(fromDate, toDate)
-        return resultResponseEntity(articles)
+        return try {
+            val articles = articleService.getArticlesByPeriod(fromDate, toDate)
+            resultResponseEntity(articles)
+        } catch (e: Exception) {
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(null)
+        }
     }
 
-//    @GetMapping("/articles/author/{authorName}")
-//    @Operation(summary = "Get all articles for a given author name")
-//    @ApiResponses(
-//        value = [
-//            ApiResponse(responseCode = "200", description = "Found the articles for the author"),
-//            ApiResponse(responseCode = "404", description = "Articles not found for the author")
-//        ]
-//    )
-//    fun getArticlesByAuthorName(
-//        @Parameter(
-//            description = "Name of the author to search for",
-//            required = true,
-//            example = "John Smith"
-//        )
-//        @PathVariable authorName: String
-//    ): ResponseEntity<List<Article>> {
-//        val articles = articleService.getArticlesByAuthorName(authorName)
-//
-//        return resultResponseEntity(articles)
-//    }
+    @GetMapping("/articles/author/{authorName}")
+    @Operation(summary = "Get all articles for a given author name")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Found the articles for the author"),
+            ApiResponse(responseCode = "404", description = "Articles not found for the author")
+        ]
+    )
+    fun getArticlesByAuthorName(
+        @Parameter(
+            description = "Name of the author to search for",
+            required = true,
+            example = "John Smith"
+        )
+        @PathVariable authorName: String
+    ): ResponseEntity<List<Article>> {
+        return try {
+            val articles = articleService.getArticlesByAuthorName(authorName)
+            resultResponseEntity(articles)
+        } catch (e: Exception) {
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(null)
+        }
+    }
 
     @GetMapping("/keyword/{keyword}")
     @Operation(
         summary = "Get articles by keyword",
-        description = "Retrieves articles that contain the specified keyword in their keywords field"
+        description = "Get all articles containing a given keyword"
     )
-    @ApiResponse(responseCode = "200", description = "Articles retrieved successfully")
-    @ApiResponse(responseCode = "404", description = "Articles not found for the keyword")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Found the articles containing the keyword"),
+            ApiResponse(responseCode = "404", description = "Articles not found containing the keyword")
+        ]
+    )
     fun getArticlesByKeyword(
-        @Parameter(description = "Keyword to search for", required = true)
+        @Parameter(
+            description = "Keyword to search for in the articles",
+            required = true,
+            example = "technology"
+        )
         @PathVariable keyword: String
     ): ResponseEntity<List<Article>> {
-        val articles = articleService.getArticlesByKeyword(keyword)
-        return resultResponseEntity(articles)
+        return try {
+            val articles = articleService.getArticlesByKeyword(keyword)
+            resultResponseEntity(articles)
+        } catch (e: Exception) {
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(null)
+        }
     }
 
     private fun resultResponseEntity(articles: List<Article>): ResponseEntity<List<Article>> {

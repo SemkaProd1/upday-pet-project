@@ -7,6 +7,5 @@ import jakarta.persistence.*
 data class Keyword(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
-    var name: String,
-    @ManyToMany var articles: HashSet<Article>? = null
+    var name: String? = null,
 )
