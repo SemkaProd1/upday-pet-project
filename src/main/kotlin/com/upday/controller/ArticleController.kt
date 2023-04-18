@@ -24,11 +24,12 @@ class ArticleController(private val articleService: ArticleService) {
     @Operation(summary = "Create an article")
     @ApiResponse(responseCode = "201", description = "Article created successfully")
     @PostMapping
-    @PreAuthorize("hasRole('Admin') or hasRole('SuperAdmin')")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_SUPER')")
     fun createArticle(@RequestBody article: Article): ResponseEntity<Article> {
         val createdArticle = articleService.createArticle(article)
         return ResponseEntity(createdArticle, HttpStatus.CREATED)
     }
+
 
     @Operation(summary = "Update an article")
     @ApiResponse(responseCode = "200", description = "Article updated successfully")
@@ -39,7 +40,7 @@ class ArticleController(private val articleService: ArticleService) {
         ]
     )
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('Admin') or hasRole('SuperAdmin')")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_SUPER')")
     fun updateArticle(
         @Parameter(
             description = "ID of the article to update",
@@ -69,7 +70,7 @@ class ArticleController(private val articleService: ArticleService) {
         ]
     )
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('Admin') or hasRole('SuperAdmin')")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_SUPER')")
     fun deleteArticle(
         @Parameter(
             description = "ID of the article to delete",
@@ -96,7 +97,7 @@ class ArticleController(private val articleService: ArticleService) {
         ]
     )
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('Admin') or hasRole('SuperAdmin')")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_SUPER')")
     fun getArticleById(
         @Parameter(
             description = "ID of the article to get",

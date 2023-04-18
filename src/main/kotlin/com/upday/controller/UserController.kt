@@ -12,14 +12,14 @@ import org.springframework.web.bind.annotation.*
 class UserController(private val userService: UserService) {
 
     @PostMapping
-    @PreAuthorize("hasRole('SuperAdmin')")
+    @PreAuthorize("hasRole('ROLE_SUPER')")
     fun createUser(@RequestBody user: User): ResponseEntity<User> {
         val createdUser = userService.createUser(user)
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser)
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('SuperAdmin')")
+    @PreAuthorize("hasRole('ROLE_SUPER')")
     fun updateUser(@PathVariable id: Long, @RequestBody user: User): ResponseEntity<*> {
         userService.updateUser(user)
         return ResponseEntity.status(HttpStatus.OK).body("Updated")

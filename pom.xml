@@ -56,20 +56,21 @@
             <plugin>
                 <artifactId>kotlin-maven-plugin</artifactId>
                 <groupId>org.jetbrains.kotlin</groupId>
+                <version>${kotlin.version}</version>
                 <configuration>
                     <args>
                         <arg>-Xjsr305=strict</arg>
                     </args>
-<!--                    <compilerPlugins>-->
-<!--                        <plugin>spring</plugin>-->
-<!--                        <plugin>jpa</plugin>-->
-<!--                        <plugin>all-open</plugin>-->
-<!--                    </compilerPlugins>-->
-<!--                    <pluginOptions>-->
-<!--                        <option>all-open:annotation=jakarta.persistence.Entity</option>-->
-<!--                        <option>all-open:annotation=jakarta.persistence.Embeddable</option>-->
-<!--                        <option>all-open:annotation=jakarta.persistence.MappedSuperclass</option>-->
-<!--                    </pluginOptions>-->
+                    <compilerPlugins>
+                        <plugin>spring</plugin>
+                        <plugin>jpa</plugin>
+                        <plugin>all-open</plugin>
+                    </compilerPlugins>
+                    <pluginOptions>
+                        <option>all-open:annotation=jakarta.persistence.Entity</option>
+                        <option>all-open:annotation=jakarta.persistence.Embeddable</option>
+                        <option>all-open:annotation=jakarta.persistence.MappedSuperclass</option>
+                    </pluginOptions>
                 </configuration>
                 <dependencies>
                     <dependency>

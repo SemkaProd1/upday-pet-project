@@ -20,12 +20,12 @@ data class User(
     var password: String = "",
 
     @Schema(description = "User Role", example = "Admin")
-    val role: Role = Role.User
+    val role: Role = Role.USER
 ) {
     // Default constructor required by JPA
-    constructor() : this(0, "", "", Role.User)
+    constructor() : this(0, "", "", Role.USER)
 
     enum class Role {
-        SuperAdmin, Admin, User
+        SUPER, ADMIN, USER
     }
 }
